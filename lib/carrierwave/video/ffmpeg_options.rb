@@ -5,7 +5,7 @@ module CarrierWave
 
       def initialize(format, options)
         @format = format.to_s
-        @resolution = options[:resolution] || "640x360"
+        @resolution = options[:resolution] || '640x360'
         @custom = options[:custom]
         @callbacks = options[:callbacks] || {}
         @logger = options[:logger]
@@ -27,7 +27,7 @@ module CarrierWave
       def progress(model)
         if @progress
           args = model.method(@progress).arity == 3 ? [@format, @format_options] : []
-          lambda { |val| model.send(@progress, *(args + [val])) }
+          ->(val) { model.send(@progress, *(args + [val])) }
         end
       end
 
@@ -36,15 +36,13 @@ module CarrierWave
       end
 
       # input
-      def format_options
-        @format_options
-      end
+      attr_reader :format_options
 
       # output
       def format_params
         params = @format_options.dup
         params.delete(:watermark)
-        params[:custom] = [params[:custom], watermark_params].compact.join(' ')
+        params[:custom] = params[:custom] + watermark_params
         params
       end
 
@@ -53,7 +51,7 @@ module CarrierWave
       end
 
       def watermark_params
-        return nil unless watermark?
+        return [] unless watermark?
 
         @watermark_params ||= begin
           path = @format_options[:watermark][:path]
@@ -70,30 +68,30 @@ module CarrierWave
                             "main_w-overlay_w-#{margin}:#{margin}"
                         end
 
-          "-vf \"movie=#{path} [logo]; [in][logo] overlay=#{positioning} [out]\""
+          ['-vf', %(movie=#{path} [logo]; [in][logo] overlay=#{positioning} [out])]
         end
       end
 
       private
 
-        def defaults
-          @defaults ||= { resolution: @resolution, watermark: {} }.tap do |h|
-            case format
+      def defaults
+        @defaults ||= { resolution: @resolution, watermark: {} }.tap do |h|
+          case format
             when 'mp4'
               h[:video_codec] = 'libx264'
-              h[:audio_codec] = 'libfaac'
-              h[:custom] = '-qscale 0 -preset slow -g 30'
+              h[:audio_codec] = 'aac'
+              h[:custom] = %w[-qscale 0 -preset slow -g 30 -strict -2]
             when 'ogv'
               h[:video_codec] = 'libtheora'
               h[:audio_codec] = 'libvorbis'
-              h[:custom] = '-b 1500k -ab 160000 -g 30'
+              h[:custom] = %w[-b 1500k -ab 160000 -g 30]
             when 'webm'
               h[:video_codec] = 'libvpx'
               h[:audio_codec] = 'libvorbis'
-              h[:custom] = '-b 1500k -ab 160000 -f webm -g 30'
-            end
+              h[:custom] = %w[-b 1500k -ab 160000 -f webm -g 30]
           end
         end
+      end
     end
   end
 end
