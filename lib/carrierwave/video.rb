@@ -59,6 +59,10 @@ module CarrierWave
 
       progress = @options.progress(model)
 
+      Rails.logger.debug "@options.format_params: "
+      Rails.logger.debug @options.format_params.inspect
+      Rails.logger.debug "@options.encoder_options: "
+      Rails.logger.debug @options.encoder_options.inspect
       with_trancoding_callbacks do
         if progress
           file.transcode(tmp_path, @options.format_params, @options.encoder_options) do |value|
