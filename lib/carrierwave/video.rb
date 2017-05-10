@@ -45,6 +45,7 @@ module CarrierWave
       @options = CarrierWave::Video::FfmpegOptions.new(format, opts)
       tmp_path = File.join(File.dirname(current_path), "tmpfile.#{format}")
       file = ::FFMPEG::Movie.new(current_path)
+      Rails.logger.debug "@@@Resolution: #{opts[:resolution]}"
 
       if opts[:resolution] == :same
         @options.format_options[:resolution] = file.resolution
