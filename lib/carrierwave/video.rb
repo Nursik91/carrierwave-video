@@ -45,7 +45,6 @@ module CarrierWave
       @options = CarrierWave::Video::FfmpegOptions.new(format, opts)
       tmp_path = File.join(File.dirname(current_path), "tmpfile.#{format}")
       file = ::FFMPEG::Movie.new(current_path)
-      Rails.logger.debug "@@@Resolution: #{opts[:resolution]}"
 
       if opts[:resolution] == :same
         @options.format_options[:resolution] = file.resolution
@@ -59,10 +58,6 @@ module CarrierWave
 
       progress = @options.progress(model)
 
-      Rails.logger.debug "@options.format_params: "
-      Rails.logger.debug @options.format_params.inspect
-      Rails.logger.debug "@options.encoder_options: "
-      Rails.logger.debug @options.encoder_options.inspect
       with_trancoding_callbacks do
         if progress
           file.transcode(tmp_path, @options.format_params, @options.encoder_options) do |value|
